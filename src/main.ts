@@ -10,10 +10,32 @@ import { Logger } from '@nestjs/common';
  * Bootstrap the NestJS application
  */
 async function bootstrap() {
+  // Criando a aplicação sem CORS habilitado inicialmente
   const app = await NestFactory.create(AppModule);
 
-  // Habilitar CORS com configuração padrão (mais simples)
-  app.enableCors();
+  // Configuração que efetivamente desabilita as restrições de CORS
+  app.enableCors({
+    origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: '*',
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  });
+
+  // Middleware para garantir que não haja restrições de CORS
+  app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', '*');
+    res.setHeader('Access-Control-Allow-Headers', '*');
+
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+      return;
+    }
+
+    next();
+  });
 
   // Global validation
   app.useGlobalPipes(new ValidationPipe());
@@ -26,7 +48,6 @@ async function bootstrap() {
     )
     .setVersion('1.0')
     .addServer('http://localhost:3000/', 'Local Environment')
-    // Adicionar servidor de produção
     .addServer(
       'https://nest-langchain.up.railway.app/',
       'Production Environment',
