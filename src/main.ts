@@ -12,12 +12,8 @@ import { Logger } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Configure CORS to allow access from any origin
-  app.enableCors({
-    origin: '*',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    credentials: true,
-  });
+  // Habilitar CORS com configuração padrão (mais simples)
+  app.enableCors();
 
   // Global validation
   app.useGlobalPipes(new ValidationPipe());
@@ -30,6 +26,11 @@ async function bootstrap() {
     )
     .setVersion('1.0')
     .addServer('http://localhost:3000/', 'Local Environment')
+    // Adicionar servidor de produção
+    .addServer(
+      'https://nest-langchain.up.railway.app/',
+      'Production Environment',
+    )
     .addTag('agent', 'Endpoints of the search agent')
     .build();
   const document = SwaggerModule.createDocument(app, config);
