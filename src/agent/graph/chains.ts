@@ -1,9 +1,3 @@
-/**
- * Configuração do modelo de linguagem para o ReAct agent.
- *
- * Este módulo configura o LLM e vincula as ferramentas necessárias.
- */
-
 import { ChatOpenAI } from '@langchain/openai';
 import { tools } from './tools';
 import { SystemMessage } from '@langchain/core/messages';
@@ -33,18 +27,16 @@ This format is crucial as it will be parsed to extract the sources properly. Eve
 );
 
 /**
- * Cria e configura o modelo de linguagem.
+ * Creates and configures the language model.
  *
- * @returns Instância do ChatOpenAI configurada
+ * @returns Configured ChatOpenAI instance
  */
 export function createLLM() {
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
-    console.error('OPENAI_API_KEY não encontrada no ambiente');
-    throw new Error(
-      'OPENAI_API_KEY é necessária para o funcionamento do agente',
-    );
+    console.error('OPENAI_API_KEY not found in environment');
+    throw new Error('OPENAI_API_KEY is required for the agent to function');
   }
 
   return new ChatOpenAI({
