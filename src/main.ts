@@ -1,20 +1,37 @@
+import 'dotenv/config';
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 
+/**
+ * Bootstrap the NestJS application
+ */
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Global validation
+  app.useGlobalPipes(new ValidationPipe());
+
+  // Swagger configuration
   const config = new DocumentBuilder()
-    .setTitle('Agent API')
-    .setDescription('API for querying current news and events using RAG')
+    .setTitle('LangChain RAG API')
+    .setDescription(
+      'API for information retrieval using LangChain and ReAct Agent',
+    )
     .setVersion('1.0')
-    .addTag('agent')
+    .addServer('http://localhost:3000/', 'Local Environment')
+    .addTag('agent', 'Endpoints of the search agent')
     .build();
-
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('api-docs', app, document);
 
-  await app.listen(3000);
+  // Start the HTTP server
+  const port = process.env.PORT || 3000;
+  await app.listen(port);
+  Logger.log(`Application running on port: ${port}`);
 }
+
 bootstrap();

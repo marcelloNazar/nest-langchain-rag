@@ -1,4 +1,4 @@
-import { IsArray, IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsString, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class Source {
@@ -22,6 +22,16 @@ export class Source {
   })
   @IsString()
   date: string;
+
+  @ApiProperty({
+    description: 'Content of the article',
+    example:
+      'Recent advances in AI have shown significant progress in natural language understanding...',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  content?: string;
 }
 
 export class AgentResponseDto {
@@ -40,4 +50,13 @@ export class AgentResponseDto {
   })
   @IsArray()
   sources: Source[];
+
+  @ApiProperty({
+    description: 'Thread identifier for conversation continuity',
+    example: 'a1b2c3d4-e5f6-7890-abcd-1234567890ab',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  threadId?: string;
 }

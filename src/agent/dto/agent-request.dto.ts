@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class AgentRequestDto {
@@ -10,4 +10,13 @@ export class AgentRequestDto {
   @IsString()
   @IsNotEmpty()
   query: string;
+
+  @ApiProperty({
+    description: 'Conversation identifier for thread persistence (optional)',
+    example: 'conv123',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  conversationId?: string;
 }

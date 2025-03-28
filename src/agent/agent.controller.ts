@@ -1,8 +1,8 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Param } from '@nestjs/common';
 import { AgentService } from './agent.service';
 import { AgentRequestDto } from './dto/agent-request.dto';
 import { AgentResponseDto } from './dto/agent-response.dto';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 
 @ApiTags('agent')
 @Controller('agent')
@@ -23,5 +23,32 @@ export class AgentController {
     @Body() createAgentDto: AgentRequestDto,
   ): Promise<AgentResponseDto> {
     return this.agentService.getAnswer(createAgentDto);
+  }
+
+  @Post('reset/:conversationId')
+  @ApiOperation({
+    summary: 'Reset conversation thread',
+  })
+  @ApiParam({
+    name: 'conversationId',
+    description: 'Unique identifier for the conversation',
+    required: true,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns new thread ID',
+    schema: {
+      type: 'object',
+      properties: {
+        threadId: {
+          type: 'string',
+          description: 'New thread ID for the conversation',
+        },
+      },
+    },
+  })
+  resetConversation(@Param('conversationId') conversationId: string) {
+    const threadId = this.agentService.resetConversation(conversationId);
+    return { threadId };
   }
 }
