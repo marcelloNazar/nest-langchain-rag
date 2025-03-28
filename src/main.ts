@@ -10,14 +10,38 @@ import { Logger } from '@nestjs/common';
  * Bootstrap the NestJS application
  */
 async function bootstrap() {
-  // Create app with simple CORS configuration
-  const app = await NestFactory.create(AppModule, {
-    cors: {
-      origin: true, // Allow all origins
-      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-      allowedHeaders: '*',
-      preflightContinue: false,
-    },
+  // Abordagem mais direta - criar aplicação sem configurações CORS iniciais
+  const app = await NestFactory.create(AppModule);
+
+  // Habilitar CORS com configuração mais permissiva possível
+  app.enableCors({
+    origin: '*',
+    methods: '*',
+    allowedHeaders: '*',
+    exposedHeaders: '*',
+    credentials: true,
+  });
+
+  // Middleware manual para garantir cabeçalhos CORS em todas as respostas
+  app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader(
+      'Access-Control-Allow-Methods',
+      'GET,PUT,POST,DELETE,OPTIONS',
+    );
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Accept, Authorization',
+    );
+    res.setHeader('Access-Control-Max-Age', '3600');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+      return;
+    }
+
+    next();
   });
 
   // Global validation
@@ -30,29 +54,29 @@ async function bootstrap() {
       'API for information retrieval using LangChain and ReAct Agent',
     )
     .setVersion('1.0')
-    .addServer('http://localhost:3000/', 'Local Environment')
-    // Make sure to use the same protocol (HTTP/HTTPS) in the server URL
+    .addServer('http://localhost:3000', 'Local Environment')
     .addServer(
       'https://nest-langchain.up.railway.app',
       'Production Environment',
     )
-    .addServer(
-      'http://nest-langchain.up.railway.app',
-      'Production HTTP Environment',
-    )
     .addTag('agent', 'Endpoints of the search agent')
     .build();
+
   const document = SwaggerModule.createDocument(app, config);
 
-  // Configure Swagger with CORS options
+  // Configure Swagger com opções específicas para resolver problemas de CORS
   SwaggerModule.setup('api-docs', app, document, {
     swaggerOptions: {
       persistAuthorization: true,
+      withCredentials: true,
+      tryItOutEnabled: true,
+      displayRequestDuration: true,
+      filter: true,
+      deepLinking: true,
     },
-    customSiteTitle: 'LangChain RAG API',
   });
 
-  // Start the HTTP server - bind to all interfaces
+  // Start the HTTP server
   const port = process.env.PORT || 3000;
   await app.listen(port);
   Logger.log(`Application running on port: ${port}`);
