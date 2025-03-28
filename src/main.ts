@@ -10,27 +10,26 @@ import { Logger } from '@nestjs/common';
  * Bootstrap the NestJS application
  */
 async function bootstrap() {
-  // Criando a aplicação sem CORS habilitado inicialmente
+  // Criar aplicação com CORS desabilitado
   const app = await NestFactory.create(AppModule);
 
-  // Configuração que efetivamente desabilita as restrições de CORS
   app.enableCors({
-    origin: true,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    origin: '*',
+    methods: '*',
     allowedHeaders: '*',
+    exposedHeaders: '*',
     credentials: true,
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
+    maxAge: 86400,
   });
 
   // Middleware para garantir que não haja restrições de CORS
   app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', '*');
-    res.setHeader('Access-Control-Allow-Headers', '*');
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', '*');
+    res.header('Access-Control-Allow-Headers', '*');
 
     if (req.method === 'OPTIONS') {
-      res.sendStatus(200);
+      res.status(200).end();
       return;
     }
 
@@ -57,9 +56,9 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-docs', app, document);
 
-  // Start the HTTP server
+  // Start the HTTP server - bind to all interfaces
   const port = process.env.PORT || 3000;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   Logger.log(`Application running on port: ${port}`);
 }
 
