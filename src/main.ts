@@ -10,30 +10,14 @@ import { Logger } from '@nestjs/common';
  * Bootstrap the NestJS application
  */
 async function bootstrap() {
-  // Criar aplicação com CORS desabilitado
-  const app = await NestFactory.create(AppModule);
-
-  app.enableCors({
-    origin: '*',
-    methods: '*',
-    allowedHeaders: '*',
-    exposedHeaders: '*',
-    credentials: true,
-    maxAge: 86400,
-  });
-
-  // Middleware para garantir que não haja restrições de CORS
-  app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', '*');
-    res.header('Access-Control-Allow-Headers', '*');
-
-    if (req.method === 'OPTIONS') {
-      res.status(200).end();
-      return;
-    }
-
-    next();
+  // Create app with simple CORS configuration
+  const app = await NestFactory.create(AppModule, {
+    cors: {
+      origin: true, // Allow all origins
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+      allowedHeaders: '*',
+      preflightContinue: false,
+    },
   });
 
   // Global validation
@@ -47,18 +31,30 @@ async function bootstrap() {
     )
     .setVersion('1.0')
     .addServer('http://localhost:3000/', 'Local Environment')
+    // Make sure to use the same protocol (HTTP/HTTPS) in the server URL
     .addServer(
-      'https://nest-langchain.up.railway.app/',
+      'https://nest-langchain.up.railway.app',
       'Production Environment',
+    )
+    .addServer(
+      'http://nest-langchain.up.railway.app',
+      'Production HTTP Environment',
     )
     .addTag('agent', 'Endpoints of the search agent')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-docs', app, document);
+
+  // Configure Swagger with CORS options
+  SwaggerModule.setup('api-docs', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+    customSiteTitle: 'LangChain RAG API',
+  });
 
   // Start the HTTP server - bind to all interfaces
   const port = process.env.PORT || 3000;
-  await app.listen(port, '0.0.0.0');
+  await app.listen(port);
   Logger.log(`Application running on port: ${port}`);
 }
 
