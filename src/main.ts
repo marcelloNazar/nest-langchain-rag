@@ -10,33 +10,21 @@ import { Logger } from '@nestjs/common';
  * Bootstrap the NestJS application
  */
 async function bootstrap() {
-  // Abordagem mais direta - criar aplicação sem configurações CORS iniciais
+  // Criar aplicação sem CORS
   const app = await NestFactory.create(AppModule);
 
-  // Habilitar CORS com configuração mais permissiva possível
-  app.enableCors({
-    origin: '*',
-    methods: '*',
-    allowedHeaders: '*',
-    exposedHeaders: '*',
-    credentials: true,
-  });
-
-  // Middleware manual para garantir cabeçalhos CORS em todas as respostas
+  // Desabilitar completamente CORS usando middleware personalizado
   app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader(
-      'Access-Control-Allow-Methods',
-      'GET,PUT,POST,DELETE,OPTIONS',
-    );
-    res.setHeader(
-      'Access-Control-Allow-Headers',
-      'Content-Type, Accept, Authorization',
-    );
-    res.setHeader('Access-Control-Max-Age', '3600');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    // Desativar completamente o CORS para todas as solicitações
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', '*');
+    res.header('Access-Control-Allow-Headers', '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
 
+    // Ajustando o Content-Type para facilitar as requisições OPTIONS
     if (req.method === 'OPTIONS') {
+      res.header('Content-Type', 'text/plain');
+      res.header('Content-Length', '0');
       res.sendStatus(200);
       return;
     }
